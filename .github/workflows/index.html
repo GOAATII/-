@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CN -> RU · US | Cargo Board</title>
+  <style>
+    body { background: #fdfaf6; color: #1a2e40; font-family: sans-serif; margin: 0; padding: 15px; }
+    header { border-bottom: 2px dashed #1a2e40; padding-bottom: 10px; margin-bottom: 20px; font-family: monospace; }
+    .stamp { border: 2px solid; padding: 2px 6px; font-weight: bold; font-family: monospace; text-transform: uppercase; display: inline-block; }
+    .stamp-closed { border-color: #2e7d32; color: #2e7d32; }
+    .stamp-open { border-color: #c62828; color: #c62828; }
+    .tabs { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 20px; }
+    .tab-btn { background: #e5e0d8; border: 1px solid #1a2e40; padding: 8px 12px; cursor: pointer; font-family: monospace; }
+    .tab-btn.active { background: #1a2e40; color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    input, select, textarea { font-family: monospace; margin: 5px 0; padding: 8px; width: 100%; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>CN → RU · US [CARGO STATUS]</h2>
+    <div id="progress-bar">Готовность к оплате: 0%</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview')">1. Обзор</button>
+    <button class="tab-btn" onclick="switchTab('tasks')">2. Задачи</button>
+    <button class="tab-btn" onclick="switchTab('legal')">3. Право</button>
+    <button class="tab-btn" onclick="switchTab('suppliers')">4. Поставщики</button>
+    <button class="tab-btn" onclick="switchTab('accounting')">5. Учёт</button>
+    <button class="tab-btn" onclick="switchTab('generator')">6. Генератор</button>
+    <button class="tab-btn" onclick="switchTab('hs-code')">7. HS-код</button>
+  </div>
+
+  <div id="overview" class="tab-content active"><h3>Дашборд</h3><div id="dashboard-metrics"></div></div>
+  <div id="tasks" class="tab-content"><h3>Задачи по неделям</h3><div id="tasks-list"></div></div>
+  <div id="legal" class="tab-content"><h3>Право и Риски</h3></div>
+  <div id="suppliers" class="tab-content"><h3>Мини-CRM Поставщиков</h3></div>
+  <div id="accounting" class="tab-content"><h3>Учёт продаж</h3></div>
+  <div id="generator" class="tab-content"><h3>Генератор карточек</h3></div>
+  <div id="hs-code" class="tab-content"><h3>Помощник по HS-коду</h3></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      databaseURL: "https://planning-with-ai-f22b8-default-rtdb.firebaseio.com"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const stateRef = ref(db, "appState");
+
+    // Синхронизация данных в реальном времени
+    onValue(stateRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        renderApp(data);
+      } else {
+        // Запись дефолтных стартовых данных при первом запуске
+        set(stateRef, getInitialSeedData());
+      }
+    });
+
+    window.saveData = (updatedState) => set(stateRef, updatedState);
+  </script>
+</body>
+</html>
